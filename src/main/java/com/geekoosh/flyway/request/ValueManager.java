@@ -18,18 +18,18 @@ public class ValueManager {
     public final static Function<String, List<String>> splitValuesFn =
             v -> v == null ? new ArrayList<>() : Arrays.stream(v.split(",")).map(String::trim).collect(Collectors.toList());
 
-    public final static Function<String, Map<String, String>> splitMapValuesFn =
-            v -> {
-                if(v == null) {
-                    return new HashMap<>();
-                }
-                Map<String, String> values = new HashMap<>();
-                Arrays.stream(v.split(",")).forEach(s -> {
-                    String[] parts = s.split("=");
-                    values.put(parts[0], parts[1]);
-                });
-                return values;
-            };
+//    public final static Function<String, Map<String, String>> splitMapValuesFn =
+//            v -> {
+//                if(v == null) {
+//                    return new HashMap<>();
+//                }
+//                Map<String, String> values = new HashMap<>();
+//                Arrays.stream(v.split(",")).forEach(s -> {
+//                    String[] parts = s.split("=");
+//                    values.put(parts[0], parts[1]);
+//                });
+//                return values;
+//            };
 
     public final static Function<String, Boolean> booleanFn =
             v -> v != null && (v.equals("1") || v.equalsIgnoreCase("true"));
