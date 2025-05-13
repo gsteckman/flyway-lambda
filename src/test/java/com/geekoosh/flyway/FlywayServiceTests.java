@@ -12,15 +12,13 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
-
-import static org.junit.Assert.*;
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,17 +26,19 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.Assert.assertEquals;
+
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayServiceTests {
     @Rule
-    public final EnvironmentVariables environmentVariables
-            = new EnvironmentVariables();
+    public final EnvironmentVariablesRule environmentVariables
+            = new EnvironmentVariablesRule();
 
     @ClassRule
     public static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.11.3"))
             .withServices(LocalStackContainer.Service.S3);
     private final String BUCKET1 = "bucket-1";
-    private final S3MockHelper s3MockHelper  = new S3MockHelper(localstack);
+    private final S3MockHelper s3MockHelper = new S3MockHelper(localstack);
 
     @Before
     public void setUp() throws IOException {
@@ -52,7 +52,7 @@ public class FlywayServiceTests {
     }
 
     private MySQLContainer mySQLContainer() {
-        return new MySQLContainer<>().withUsername("username").withPassword("password").withDatabaseName("testdb");
+        return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.36")).withUsername("username").withPassword("password").withDatabaseName("testdb");
     }
 
     @Test
@@ -106,7 +106,9 @@ public class FlywayServiceTests {
             assertEquals("T", conf.getSqlMigrationPrefix());
 
         } finally {
-            environmentVariables.clear("FLYWAY_CONFIG_FILE", "FLYWAY_SQL_MIGRATION_PREFIX");
+            // environmentVariables.clear("FLYWAY_CONFIG_FILE", "FLYWAY_SQL_MIGRATION_PREFIX");
+            environmentVariables.remove("FLYWAY_CONFIG_FILE");
+            environmentVariables.remove("FLYWAY_SQL_MIGRATION_PREFIX");
         }
     }
 
@@ -126,7 +128,8 @@ public class FlywayServiceTests {
             );
             flywayService.configure();
         } finally {
-            environmentVariables.clear("FLYWAY_CONFIG_FILE");
+            // environmentVariables.clear("FLYWAY_CONFIG_FILE");
+            environmentVariables.remove("FLYWAY_CONFIG_FILE");
         }
     }
 }

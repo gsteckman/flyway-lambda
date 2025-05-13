@@ -48,6 +48,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
 import com.geekoosh.flyway.request.FlywayMethod;
 import com.geekoosh.flyway.request.FlywayRequest;
 import com.geekoosh.flyway.request.GitRequest;
@@ -57,10 +58,11 @@ import org.eclipse.jgit.junit.http.AppServer;
 import org.eclipse.jgit.lib.ObjectId;
 import org.flywaydb.core.api.MigrationInfo;
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+// import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.containers.MySQLContainer;
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,12 +71,13 @@ import java.util.Properties;
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayHandlerMySQLTests extends GitSSLTestCase {
     @Rule
-    public final EnvironmentVariables environmentVariables
-            = new EnvironmentVariables();
+    public final EnvironmentVariablesRule environmentVariables
+            = new EnvironmentVariablesRule();
 
     private void setConnectionString(String connectionString) {
         environmentVariables.set("DB_CONNECTION_STRING", connectionString);
     }
+
     @Before
     public void setUp() throws Exception {
         super.setUp();
@@ -86,18 +89,18 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
         environmentVariables.set("FLYWAY_METHOD", FlywayMethod.MIGRATE.name());
     }
 
-    private MySQLContainer mySQLContainer() {
-        return new MySQLContainer<>("mysql:5.7.36")
+    private MySQLContainer<?> mySQLContainer() {
+        return new MySQLContainer<>("mysql:8.0.36") // "mysql:5.7.36"
                 .withUsername("username").withPassword("password").withDatabaseName("testdb");
     }
 
-    private String jdbcUrl(MySQLContainer mysql) {
+    private String jdbcUrl(MySQLContainer<?> mysql) {
         return mysql.getJdbcUrl() + "?enabledTLSProtocols=TLSv1.2";
     }
 
     @Test
     public void testMigrateMySQL() throws Exception {
-        try (MySQLContainer mysql = mySQLContainer()) {
+        try (MySQLContainer<?> mysql = mySQLContainer()) {
             mysql.start();
             setConnectionString(jdbcUrl(mysql));
 
@@ -126,8 +129,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery(String.format("describe %s.tasks;", "testdb"));
             rs.next();
-            Assert.assertEquals(rs.getString(1), "task_id");
-            Assert.assertEquals(rs.getString(2), "int(11)");
+            Assert.assertEquals("task_id", rs.getString(1));
+            Assert.assertEquals("int", rs.getString(2));
 
             rs = stmt.executeQuery(String.format("select * from %s.flyway_schema_history;", "testdb"));
             rs.next();
@@ -136,7 +139,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
             con.close();
 
-            request.setFlywayRequest(new FlywayRequest().setFlywayMethod("clean"));
+            request.setFlywayRequest(new FlywayRequest().setFlywayMethod("clean").setCleanDisabled(false));
             response = flywayHandler.handleRequest(request, null);
             Assert.assertNull(response.getInfo().getCurrent());
         }
@@ -180,7 +183,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             Assert.assertEquals("P1__init.sql", migrationInfos[0].getScript());
             Assert.assertEquals("P2__update.sql", migrationInfos[1].getScript());
         } finally {
-            environmentVariables.clear("FLYWAY_CONFIG_FILE");
+            // environmentVariables.clear("FLYWAY_CONFIG_FILE");
+            environmentVariables.remove("FLYWAY_CONFIG_FILE");
         }
     }
 

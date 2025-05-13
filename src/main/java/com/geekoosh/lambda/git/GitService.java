@@ -16,24 +16,24 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GitService implements MigrationFilesService{
+public class GitService implements MigrationFilesService {
     private static final Logger logger = LogManager.getLogger(GitService.class);
-    private static final String basePath = "/tmp";
+    private static final String basePath = System.getProperty("java.io.tmpdir"); // "/tmp";
 
-    private File gitDirectory;
+    private final File gitDirectory;
     private Git repo;
-    private GitRequest gitRequest;
+    private final GitRequest gitRequest;
 
     public GitService(String localRepo, GitRequest gitRequest) {
         this.gitRequest = gitRequest;
         this.gitDirectory = new File(basePath + "/" + localRepo);
     }
+
     public GitService(GitRequest gitRequest) {
         this("gitrepo", gitRequest);
     }
@@ -41,26 +41,27 @@ public class GitService implements MigrationFilesService{
     private String branch() {
         return gitRequest.getGitBranch() != null ? gitRequest.getGitBranch() : "master";
     }
+
     private String branchRef() {
         return String.format("refs/heads/%s", branch());
     }
 
     public void cloneRepo() throws MigrationFilesException {
-        if(gitDirectory.exists()) {
+        if (gitDirectory.exists()) {
             try {
                 FileUtils.deleteDirectory(gitDirectory);
             } catch (IOException e) {
                 throw new MigrationFilesException("Failed deleting existing git directory", e);
             }
         }
-        if(!gitDirectory.mkdir()) {
+        if (!gitDirectory.mkdir()) {
             throw new MigrationFilesException("Git directory creation failed");
         }
         logger.info("Fetching from " + gitRequest.getGitRepository());
         logger.info("Fetching from branch " + branchRef());
 
         CloneCommand cloneCmd = Git.cloneRepository();
-        if(gitRequest.getUsername() != null && gitRequest.getPassword() != null) {
+        if (gitRequest.getUsername() != null && gitRequest.getPassword() != null) {
             cloneCmd = cloneCmd.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
                     gitRequest.getUsername(), gitRequest.getPassword()
             ));
@@ -80,7 +81,7 @@ public class GitService implements MigrationFilesService{
     }
 
     private Git getRepo() throws IOException {
-        if(repo == null) {
+        if (repo == null) {
             try {
                 repo = Git.open(gitDirectory);
             } catch (IOException e) {
@@ -90,6 +91,7 @@ public class GitService implements MigrationFilesService{
         }
         return repo;
     }
+
     private boolean repoExists() {
         try {
             getRepo();
@@ -106,8 +108,8 @@ public class GitService implements MigrationFilesService{
                     .setCredentialsProvider(new UsernamePasswordCredentialsProvider(
                             gitRequest.getUsername(), gitRequest.getPassword()
                     ));
-                    //.setRemoteBranchName(branchRef())
-                    //.setRemote("origin");
+            //.setRemoteBranchName(branchRef())
+            //.setRemote("origin");
             logger.info("Pulling from branch " + branchRef());
 
             pullCommand.call();
@@ -120,7 +122,7 @@ public class GitService implements MigrationFilesService{
     private String createTempBranchName() throws IOException, GitAPIException {
         boolean found = true;
         String branchName = RandomStringUtils.randomAlphabetic(15);
-        while(found) {
+        while (found) {
             List<Ref> refs = getRepo().branchList().call();
             found = refs.stream().anyMatch(ref -> ref.getName().equals(branchName));
         }
@@ -128,7 +130,7 @@ public class GitService implements MigrationFilesService{
     }
 
     public void checkout() throws MigrationFilesException {
-        if(gitRequest.getCommit() != null) {
+        if (gitRequest.getCommit() != null) {
             try {
                 getRepo().checkout().setCreateBranch(true).setName(createTempBranchName()).setStartPoint(gitRequest.getCommit()).call();
             } catch (GitAPIException | IOException e) {
@@ -138,7 +140,7 @@ public class GitService implements MigrationFilesService{
     }
 
     public void cloneOrPull() throws MigrationFilesException {
-        if(repoExists()) {
+        if (repoExists()) {
             pullRepo();
         } else {
             cloneRepo();
@@ -147,12 +149,16 @@ public class GitService implements MigrationFilesService{
 
     public void removeRepo() throws MigrationFilesException {
         try {
+            if (repo != null) {
+                repo.close();
+            }
             FileUtils.deleteDirectory(gitDirectory);
         } catch (IOException e) {
             logger.error("Failed deleting existing git directory", e);
             throw new MigrationFilesException("Failed deleting existing git directory", e);
         }
     }
+
     public boolean hasFile(String path) {
         return Paths.get(gitDirectory.getPath(), path).toFile().exists();
     }
@@ -170,17 +176,17 @@ public class GitService implements MigrationFilesService{
             } else {
                 cloneRepo();
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new MigrationFilesException(e);
         }
     }
 
     @Override
     public List<String> getFolders() {
-        return gitRequest.getFolders().size() == 0 ?
+        return gitRequest.getFolders().isEmpty() ?
                 Collections.singletonList(gitDirectory.getPath()) :
-                    gitRequest.getFolders()
-                    .stream().map(this::getPath).collect(Collectors.toList());
+                gitRequest.getFolders()
+                        .stream().map(this::getPath).collect(Collectors.toList());
     }
 
     @Override
@@ -189,7 +195,7 @@ public class GitService implements MigrationFilesService{
             if (!gitRequest.getReuseRepo()) {
                 removeRepo();
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new MigrationFilesException(e);
         }
     }

@@ -53,16 +53,18 @@ import com.geekoosh.flyway.response.Response;
 import com.geekoosh.lambda.s3.S3Service;
 import org.json.JSONObject;
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
+// import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
+import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
 import java.io.File;
 import java.sql.*;
+import java.util.Arrays;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayHandlerPostgresTests {
@@ -75,8 +77,8 @@ public class FlywayHandlerPostgresTests {
     private static final String BUCKET3 = "bucket-3";
 
     @Rule
-    public final EnvironmentVariables environmentVariables
-            = new EnvironmentVariables();
+    public final EnvironmentVariablesRule environmentVariables
+            = new EnvironmentVariablesRule();
 
     @Before
     public void setUp() {
@@ -90,6 +92,7 @@ public class FlywayHandlerPostgresTests {
     private void testMigrate(String connectionString, String bucket) throws SQLException {
         testMigrate(connectionString, bucket, null, "password", false);
     }
+
     private void testMigrate(String connectionString, String bucket, String s3Folder) throws SQLException {
         testMigrate(connectionString, bucket, s3Folder, "password", false);
     }
@@ -115,28 +118,30 @@ public class FlywayHandlerPostgresTests {
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT column_name, data_type FROM information_schema.COLUMNS WHERE TABLE_NAME='tasks';");
             rs.next();
-            Assert.assertEquals(rs.getString(1), "task_id");
-            Assert.assertEquals(rs.getString(2), "integer");
+            Assert.assertEquals("task_id", rs.getString(1));
+            Assert.assertEquals("integer", rs.getString(2));
 
             rs = stmt.executeQuery("SELECT * FROM flyway_schema_history;");
             rs.next();
-            Assert.assertEquals(rs.getInt(1), 1);
-            Assert.assertEquals(rs.getInt(2), 1);
+            Assert.assertEquals(1, rs.getInt(1));
+            Assert.assertEquals(1, rs.getInt(2));
 
             con.close();
         } finally {
-            environmentVariables.clear("AWS_REGION", "S3_BUCKET", "S3_FOLDER", "DB_USERNAME", "DB_PASSWORD", "DB_CONNECTION_STRING", "FLYWAY_METHOD");
+            // environmentVariables.clear("AWS_REGION", "S3_BUCKET", "S3_FOLDER", "DB_USERNAME", "DB_PASSWORD", "DB_CONNECTION_STRING", "FLYWAY_METHOD");
+            String[] variables = new String[]{"AWS_REGION", "S3_BUCKET", "S3_FOLDER", "DB_USERNAME", "DB_PASSWORD", "DB_CONNECTION_STRING", "FLYWAY_METHOD"};
+            Arrays.stream(variables).forEach(environmentVariables::remove);
         }
     }
 
-    private PostgreSQLContainer postgreSQLContainer() {
+    private PostgreSQLContainer<?> postgreSQLContainer() {
         return new PostgreSQLContainer<>("postgres:11.14")
                 .withUsername("username").withPassword("password");
     }
 
     @Test
     public void testMigratePostgresWithS3Folder() throws SQLException {
-        try (PostgreSQLContainer postgres = postgreSQLContainer()) {
+        try (PostgreSQLContainer<?> postgres = postgreSQLContainer()) {
             postgres.start();
             s3MockHelper.upload(
                     new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
@@ -146,6 +151,7 @@ public class FlywayHandlerPostgresTests {
             testMigrate(postgres.getJdbcUrl(), BUCKET1, "migrations");
         }
     }
+
     @Test
     public void testMigratePostgres() throws SQLException {
         try (PostgreSQLContainer postgres = postgreSQLContainer()) {
@@ -158,6 +164,7 @@ public class FlywayHandlerPostgresTests {
             testMigrate(postgres.getJdbcUrl(), BUCKET2);
         }
     }
+
     @Test
     public void testPasswordSecret() throws SQLException {
         try (PostgreSQLContainer postgres = postgreSQLContainer()) {
@@ -168,7 +175,7 @@ public class FlywayHandlerPostgresTests {
             GetSecretValueResult getSecretValueResult = new GetSecretValueResult();
             getSecretValueResult.setSecretString(new JSONObject().put("password", "password").put("username", "username").toString());
             Mockito.when(awsSecretsManager.getSecretValue(
-                    Mockito.eq(new GetSecretValueRequest().withSecretId("password_secret").withVersionStage("AWSCURRENT"))))
+                            Mockito.eq(new GetSecretValueRequest().withSecretId("password_secret").withVersionStage("AWSCURRENT"))))
                     .thenReturn(getSecretValueResult);
             s3MockHelper.upload(
                     new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),

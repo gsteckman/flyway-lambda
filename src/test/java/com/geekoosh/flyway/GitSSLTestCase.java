@@ -1,6 +1,9 @@
 package com.geekoosh.flyway;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+
+//import org.eclipse.jetty.servlet.ServletContextHandler;
+//import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.http.server.GitServlet;
@@ -11,7 +14,9 @@ import org.eclipse.jgit.lib.ConfigConstants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.rules.TemporaryFolder;
 
 import javax.net.ssl.*;
@@ -54,6 +59,7 @@ public class GitSSLTestCase extends HttpTestCase {
             this.file = new File(resource.getFile());
             this.destPath = destPath;
         }
+
         public GitFile(String content, String destPath) {
             this.content = content;
             this.destPath = destPath;
@@ -73,15 +79,16 @@ public class GitSSLTestCase extends HttpTestCase {
     }
 
     private static void disableSslVerification() {
-        try
-        {
+        try {
             // Create a trust manager that does not validate certificate chains
-            TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+            TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
+
                 public void checkClientTrusted(X509Certificate[] certs, String authType) {
                 }
+
                 public void checkServerTrusted(X509Certificate[] certs, String authType) {
                 }
             }
@@ -152,9 +159,9 @@ public class GitSSLTestCase extends HttpTestCase {
 
     public ObjectId pushFilesToMaster(List<GitFile> files) throws Exception {
         AddCommand addCommand = clientRepo.add();
-        for(GitFile f : files) {
+        for (GitFile f : files) {
             Path destPath = Paths.get(folder.getRoot().getPath(), f.getDestPath());
-            if(f.getFile() != null) {
+            if (f.getFile() != null) {
                 new File(destPath.toString()).mkdirs();
                 Files.copy(Paths.get(f.getFile().getPath()), destPath, StandardCopyOption.REPLACE_EXISTING);
             } else {

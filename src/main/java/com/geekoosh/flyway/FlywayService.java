@@ -27,10 +27,10 @@ import java.util.stream.Collectors;
 
 public class FlywayService {
     private static final Logger logger = LogManager.getLogger(FlywayService.class);
-    private FlywayRequest flywayRequest;
-    private DBRequest dbRequest;
+    private final FlywayRequest flywayRequest;
+    private final DBRequest dbRequest;
     private List<String> folders;
-    private MigrationFilesService migrationFilesService;
+    private final MigrationFilesService migrationFilesService;
 
     public FlywayService(FlywayRequest flywayRequest, DBRequest dbRequest, MigrationFilesService migrationFilesService) {
         this.flywayRequest = flywayRequest;
@@ -60,8 +60,10 @@ public class FlywayService {
 
     private Properties loadConfig(String url) throws IOException {
         Properties prop = new Properties();
-        prop.load(urlStream(url));
-        return prop;
+        try (InputStream propStream = urlStream(url)) {
+            prop.load(propStream);
+            return prop;
+        }
     }
 
     private void dumpConfiguration(Flyway flyway) {
@@ -190,13 +192,22 @@ public class FlywayService {
             config.group(flywayRequest.getGroup());
         }
         if(flywayRequest.getIgnoreMissingMigrations() != null) {
-            config.ignoreMissingMigrations(flywayRequest.getIgnoreMissingMigrations());
+            if(flywayRequest.getIgnoreMissingMigrations()) {
+                config.ignoreMigrationPatterns("*:missing");
+            }
+            // config.ignoreMissingMigrations(flywayRequest.getIgnoreMissingMigrations());
         }
         if(flywayRequest.getIgnoreIgnoredMigrations() != null) {
-            config.ignoreIgnoredMigrations(flywayRequest.getIgnoreIgnoredMigrations());
+            if(flywayRequest.getIgnoreIgnoredMigrations()){
+                config.ignoreMigrationPatterns("*:ignored");
+            }
+            // config.ignoreIgnoredMigrations(flywayRequest.getIgnoreIgnoredMigrations());
         }
         if(flywayRequest.getIgnoreFutureMigrations() != null) {
-            config.ignoreFutureMigrations(flywayRequest.getIgnoreFutureMigrations());
+            if(flywayRequest.getIgnoreFutureMigrations()){
+                config.ignoreMigrationPatterns("*:future");
+            }
+            // config.ignoreFutureMigrations(flywayRequest.getIgnoreFutureMigrations());
         }
         if(flywayRequest.getCleanDisabled() != null) {
             config.cleanDisabled(flywayRequest.getCleanDisabled());
