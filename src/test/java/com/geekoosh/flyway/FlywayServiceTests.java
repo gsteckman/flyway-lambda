@@ -114,7 +114,7 @@ public class FlywayServiceTests {
 
     @Test(expected = com.amazonaws.services.s3.model.AmazonS3Exception.class)
     public void testConfigurationNotFound() throws IOException {
-        try (MySQLContainer mysql = mySQLContainer()) {
+        try (MySQLContainer<?> mysql = mySQLContainer()) {
             mysql.start();
 
             environmentVariables.set("FLYWAY_CONFIG_FILE", String.format("s3://%s/flyway/config-not-there.props", BUCKET1));

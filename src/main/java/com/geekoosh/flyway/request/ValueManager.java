@@ -88,17 +88,17 @@ public class ValueManager {
         return value(current, env, ValueManager.splitValuesFn);
     }
 
-    public static Map<String, String> splitMapValues(Map<String, String> current, EnvironmentVars env) {
-        return value(current, env, ValueManager.splitMapValuesFn);
-    }
+//    public static Map<String, String> splitMapValues(Map<String, String> current, EnvironmentVars env) {
+//        return value(current, env, ValueManager.splitMapValuesFn);
+//    }
 
     public static <R> R value(R current, EnvironmentVars env) throws ResourceNotFoundException, InvalidRequestException, InvalidParameterException {
         return value(current, env, null, null);
     }
 
-    public static <R> R value(R current, EnvironmentVars env, SecretVars secretEnvName) throws ResourceNotFoundException, InvalidRequestException, InvalidParameterException {
-        return value(current, env, secretEnvName, null);
-    }
+//    public static <R> R value(R current, EnvironmentVars env, SecretVars secretEnvName) throws ResourceNotFoundException, InvalidRequestException, InvalidParameterException {
+//        return value(current, env, secretEnvName, null);
+//    }
 
     public static <R> R value(R current, EnvironmentVars env, Function<String, R> mapping) throws ResourceNotFoundException, InvalidRequestException, InvalidParameterException {
         return value(current, env, null, mapping);

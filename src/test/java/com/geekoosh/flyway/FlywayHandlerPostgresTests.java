@@ -179,7 +179,7 @@ public class FlywayHandlerPostgresTests {
                             Mockito.eq(new GetSecretValueRequest().withSecretId("password_secret").withVersionStage("AWSCURRENT"))))
                     .thenReturn(getSecretValueResult);
             s3MockHelper.upload(
-                    new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
+                    new File(Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql")).getFile()),
                     BUCKET3,
                     "migrations/V1__init.sql"
             );
