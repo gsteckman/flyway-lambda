@@ -65,6 +65,7 @@ import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 import java.io.File;
 import java.sql.*;
 import java.util.Arrays;
+import java.util.Objects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FlywayHandlerPostgresTests {
@@ -144,7 +145,7 @@ public class FlywayHandlerPostgresTests {
         try (PostgreSQLContainer<?> postgres = postgreSQLContainer()) {
             postgres.start();
             s3MockHelper.upload(
-                    new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
+                    new File(Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql")).getFile()),
                     BUCKET1,
                     "migrations/V1__init.sql"
             );
@@ -154,10 +155,10 @@ public class FlywayHandlerPostgresTests {
 
     @Test
     public void testMigratePostgres() throws SQLException {
-        try (PostgreSQLContainer postgres = postgreSQLContainer()) {
+        try (PostgreSQLContainer<?> postgres = postgreSQLContainer()) {
             postgres.start();
             s3MockHelper.upload(
-                    new File(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql").getFile()),
+                    new File(Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/postgres/V1__init.sql")).getFile()),
                     BUCKET2,
                     "V1__init.sql"
             );
@@ -167,7 +168,7 @@ public class FlywayHandlerPostgresTests {
 
     @Test
     public void testPasswordSecret() throws SQLException {
-        try (PostgreSQLContainer postgres = postgreSQLContainer()) {
+        try (PostgreSQLContainer<?> postgres = postgreSQLContainer()) {
             postgres.start();
             AWSSecretsManager awsSecretsManager = Mockito.mock(AWSSecretsManager.class);
             ValueManager.setClient(awsSecretsManager);

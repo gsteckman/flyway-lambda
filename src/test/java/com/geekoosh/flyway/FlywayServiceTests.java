@@ -51,7 +51,7 @@ public class FlywayServiceTests {
         s3MockHelper.getS3().putObject(BUCKET1, "flyway/bad-config.props", "vary bad string");
     }
 
-    private MySQLContainer mySQLContainer() {
+    private MySQLContainer<?> mySQLContainer() {
         return new MySQLContainer<>(DockerImageName.parse("mysql:8.0.36")).withUsername("username").withPassword("password").withDatabaseName("testdb");
     }
 
@@ -59,7 +59,7 @@ public class FlywayServiceTests {
     public void testConfigure() throws IOException {
         MigrationFilesService migrationFilesService = Mockito.mock(GitService.class);
         Mockito.when(migrationFilesService.getFolders()).thenReturn(Arrays.asList("folder1", "folder2"));
-        try (MySQLContainer mysql = mySQLContainer()) {
+        try (MySQLContainer<?> mysql = mySQLContainer()) {
             mysql.start();
             S3Service.setAmazonS3(s3MockHelper.getS3());
             String connectionString = mysql.getJdbcUrl();

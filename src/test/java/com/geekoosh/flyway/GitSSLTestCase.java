@@ -1,7 +1,5 @@
 package com.geekoosh.flyway;
 
-//import org.eclipse.jetty.servlet.ServletContextHandler;
-//import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jgit.api.AddCommand;
@@ -34,26 +32,22 @@ import java.util.List;
 
 public class GitSSLTestCase extends HttpTestCase {
 
-    private TestRepository<Repository> src;
-
     public TemporaryFolder folder;
-
-    private URIish remoteURI;
 
     private URIish secureURI;
 
     private Git clientRepo;
 
-    private CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(AppServer.username, AppServer.password);
+    private final CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(AppServer.username, AppServer.password);
 
     public String getRepoUrl() {
         return secureURI.toString();
     }
 
-    public class GitFile {
+    public static class GitFile {
         private File file;
         private String content;
-        private String destPath;
+        private final String destPath;
 
         public GitFile(URL resource, String destPath) {
             this.file = new File(resource.getFile());
@@ -117,7 +111,7 @@ public class GitSSLTestCase extends HttpTestCase {
         folder = new TemporaryFolder();
         folder.create();
 
-        src = createTestRepository();
+        TestRepository<Repository> src = createTestRepository();
         src.getRepository()
                 .getConfig()
                 .setBoolean(ConfigConstants.CONFIG_CORE_SECTION, null,
@@ -132,7 +126,7 @@ public class GitSSLTestCase extends HttpTestCase {
         server.authBasic(app);
         server.setUp();
 
-        remoteURI = toURIish(app, srcName);
+        URIish remoteURI = toURIish(app, srcName);
         secureURI = new URIish(rewriteUrl(remoteURI.toString(), "https",
                 server.getSecurePort()));
 

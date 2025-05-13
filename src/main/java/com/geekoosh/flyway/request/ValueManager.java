@@ -23,7 +23,7 @@ public class ValueManager {
                 if(v == null) {
                     return new HashMap<>();
                 }
-                Map<String, String> values = new HashMap<String, String>();
+                Map<String, String> values = new HashMap<>();
                 Arrays.stream(v.split(",")).forEach(s -> {
                     String[] parts = s.split("=");
                     values.put(parts[0], parts[1]);
@@ -32,7 +32,7 @@ public class ValueManager {
             };
 
     public final static Function<String, Boolean> booleanFn =
-            v -> v != null && (v.equals("1") || v.toLowerCase().equals("true"));
+            v -> v != null && (v.equals("1") || v.equalsIgnoreCase("true"));
 
     public static void setClient(AWSSecretsManager client) {
         ValueManager.client = client;
@@ -49,7 +49,7 @@ public class ValueManager {
     public static String latestSecret(String secretName) throws ResourceNotFoundException, InvalidRequestException, InvalidParameterException {
         GetSecretValueRequest getSecretValueRequest = new GetSecretValueRequest()
                 .withSecretId(secretName).withVersionStage("AWSCURRENT");
-        GetSecretValueResult getSecretValueResult = null;
+        GetSecretValueResult getSecretValueResult;
         try {
             getSecretValueResult = getClient().getSecretValue(getSecretValueRequest);
         } catch(ResourceNotFoundException e) {

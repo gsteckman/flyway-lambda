@@ -20,9 +20,9 @@ public class S3Service implements MigrationFilesService {
     private static final Logger logger = LogManager.getLogger(S3Service.class);
     private static final String basePath = "/tmp";
 
-    private String bucket;
-    private String folder;
-    private File dataDirectory;
+    private final String bucket;
+    private final String folder;
+    private final File dataDirectory;
 
     private static AmazonS3 amazonS3;
 

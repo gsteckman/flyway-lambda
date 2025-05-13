@@ -43,13 +43,11 @@ package com.geekoosh.flyway;
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// import javax.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.eclipse.jgit.errors.RepositoryNotFoundException;
 import org.eclipse.jgit.junit.TestRepository;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.transport.resolver.RepositoryResolver;
-import org.eclipse.jgit.transport.resolver.ServiceNotEnabledException;
 
 /**
  * A simple repository resolver for tests.
@@ -65,17 +63,17 @@ public final class TestRepositoryResolver
      * Create a new TestRepositoryResolver
      * that resolves the given name to the given repository.
      *
-     * @param repo
-     *            to resolve to
-     * @param repoName
-     *            to match
+     * @param repo     to resolve to
+     * @param repoName to match
      */
     public TestRepositoryResolver(TestRepository<Repository> repo, String repoName) {
         this.repo = repo;
         this.repoName = repoName;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Repository open(HttpServletRequest req, String name)
             throws RepositoryNotFoundException {

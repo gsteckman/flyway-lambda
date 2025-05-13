@@ -9,6 +9,8 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GitServiceTests extends GitSSLTestCase {
@@ -23,9 +25,9 @@ public class GitServiceTests extends GitSSLTestCase {
         GitService gitService = new GitService(gitRequest);
         try {
             pushFilesToMaster(
-                    Arrays.asList(
+                    List.of(
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql")),
                                     "V1__init.sql"
                             )
                     )
@@ -36,9 +38,9 @@ public class GitServiceTests extends GitSSLTestCase {
             gitService.clean();
             Assert.assertTrue(gitService.hasFile("V1__init.sql"));
             pushFilesToMaster(
-                    Arrays.asList(
+                    List.of(
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql")),
                                     "V2__update.sql"
                             )
                     )

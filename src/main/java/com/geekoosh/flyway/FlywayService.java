@@ -79,9 +79,9 @@ public class FlywayService {
                 "%s\\d+%s.*[%s]",
                 config.getSqlMigrationPrefix(),
                 config.getSqlMigrationSeparator(),
-                String.join("|", Arrays.stream(
+                Arrays.stream(
                         config.getSqlMigrationSuffixes())
-                        .map(s -> s.replace(".", "\\.")).collect(Collectors.toList()))
+                        .map(s -> s.replace(".", "\\.")).collect(Collectors.joining("|"))
         );
 
         final Pattern p = Pattern.compile(migrationPattern);
@@ -109,8 +109,7 @@ public class FlywayService {
         );
 
         if(folders != null) {
-            config.locations(folders.stream().map(f -> "filesystem:" + f)
-                    .collect(Collectors.toList()).toArray(new String[0]));
+            config.locations(folders.stream().map(f -> "filesystem:" + f).toArray(String[]::new));
         }
 
         if(flywayRequest.getConfigFile() != null) {

@@ -13,7 +13,7 @@ import java.io.StringWriter;
 import java.util.Properties;
 
 public class S3MockHelper {
-    private AmazonS3 s3;
+    private final AmazonS3 s3;
 
     public S3MockHelper(AmazonS3 s3) {
         this.s3 = s3;

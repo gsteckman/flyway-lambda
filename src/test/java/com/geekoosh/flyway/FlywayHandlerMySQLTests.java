@@ -66,6 +66,7 @@ import uk.org.webcompere.systemstubs.rules.EnvironmentVariablesRule;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Properties;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -107,11 +108,11 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             pushFilesToMaster(
                     Arrays.asList(
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql")),
                                     "V1__init.sql"
                             ),
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql")),
                                     "V2__update.sql"
                             )
                     )
@@ -134,8 +135,8 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
             rs = stmt.executeQuery(String.format("select * from %s.flyway_schema_history;", "testdb"));
             rs.next();
-            Assert.assertEquals(rs.getInt(1), 1);
-            Assert.assertEquals(rs.getInt(2), 1);
+            Assert.assertEquals(1, rs.getInt(1));
+            Assert.assertEquals(1, rs.getInt(2));
 
             con.close();
 
@@ -147,7 +148,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
     @Test
     public void testMigrateWithConfig() throws Exception {
-        try (MySQLContainer mysql = mySQLContainer()) {
+        try (MySQLContainer<?> mysql = mySQLContainer()) {
             mysql.start();
             setConnectionString(jdbcUrl(mysql));
 
@@ -165,11 +166,11 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
                                     "flyway/config.props"
                             ),
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql")),
                                     "P1__init.sql"
                             ),
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql")),
                                     "P2__update.sql"
                             )
                     )
@@ -190,13 +191,13 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
     @Test
     public void testMigrateFromCommitMySQL() throws Exception {
-        try (MySQLContainer mysql = mySQLContainer()) {
+        try (MySQLContainer<?> mysql = mySQLContainer()) {
             mysql.start();
             setConnectionString(jdbcUrl(mysql));
             ObjectId commitId1 = pushFilesToMaster(
                     Collections.singletonList(
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql")),
                                     "V1__init.sql"
                             )
                     )
@@ -204,7 +205,7 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
             ObjectId commitId2 = pushFilesToMaster(
                     Collections.singletonList(
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql")),
                                     "V2__update.sql"
                             )
                     )
@@ -234,17 +235,17 @@ public class FlywayHandlerMySQLTests extends GitSSLTestCase {
 
     @Test
     public void testBaselineMySQL() throws Exception {
-        try (MySQLContainer mysql = mySQLContainer()) {
+        try (MySQLContainer<?> mysql = mySQLContainer()) {
             mysql.start();
             setConnectionString(jdbcUrl(mysql));
             pushFilesToMaster(
                     Arrays.asList(
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V1__init.sql")),
                                     "V1__init.sql"
                             ),
                             new GitFile(
-                                    getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql"),
+                                    Objects.requireNonNull(getClass().getClassLoader().getResource("migrations/mysql/V2__update.sql")),
                                     "V2__update.sql"
                             )
                     )
